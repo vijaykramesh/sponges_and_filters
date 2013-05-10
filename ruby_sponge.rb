@@ -84,7 +84,7 @@ module SpongesAndFilters
     def quantile_users
       quantiles = [[]]
       current_quantile = 0
-      Hash.sort_by {|k,v| v }.each_slice(users_per_quantile) {|slice|
+      hash.sort_by {|k,v| v }.each_slice(users_per_quantile) {|slice|
         slice.each {|uid, val|
           quantiles[current_quantile] << uid
           if quantiles[current_quantile].size > users_per_quantile
