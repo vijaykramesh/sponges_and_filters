@@ -3,56 +3,42 @@ require 'benchmark'
 require 'json'
 
 require './etc/s3_config'
-require './lib/memory_analyzer'
 
 module SpongesAndFilters
 
   class RubySponge
 
-    def self.soak(max_files = nil)
+    def self.soak(source_name = "signature_counts", max_files = nil)
 
       if max_files
-        sponge = new(max_files)
+        sponge = new(source_name, max_files)
         puts JSON.pretty_generate(sponge.quantile_stats)
-        # puts MemoryAnalyzer.new(sponge).calculate_size.to_f / 1024.0
       else
         Benchmark.bm do |s|
           s.report("1 file") {
-            sponge = new(1)
+            sponge = new(source_name, 1)
             puts JSON.pretty_generate(sponge.quantile_stats)
-            puts MemoryAnalyzer.new(sponge).calculate_size.to_f / 1024.0
           }
 
           s.report("2 files")   {
-            stats = new(2).quantile_stats
-            size = MemoryAnalyzer.new(stats).calculate_size
+            stats = new(source_name, 2).quantile_stats
             puts JSON.pretty_generate(stats)
-            puts size.to_f/ 1024.0
           }
           s.report("10 files")   {
-            stats = new(10).quantile_stats
-            size = MemoryAnalyzer.new(stats).calculate_size
+            stats = new(source_name, 10).quantile_stats
             puts JSON.pretty_generate(stats)
-            puts size.to_f/ 1024.0
           }
           s.report("100 files")   {
-           stats = new(100).quantile_stats
-            size = MemoryAnalyzer.new(stats).calculate_size
+           stats = new(source_name, 100).quantile_stats
             puts JSON.pretty_generate(stats)
-            puts size.to_f/ 1024.0
           }
-          # s.report("1000 files")   {
-          #   stats = new(1000).quantile_statss
-          #   size = Knj::Memory_analyzer::Object_size_counter.new(stats).calculate_size
-          #   puts JSON.pretty_generate(stats)
-          #   puts size.to_f/ 1024.0
-          # }
         end
       end
     end
 
-    attr_accessor :max_files, :number_of_quantiles
-    def initialize(max_files, number_of_quantiles = 5)
+    attr_accessor :max_files, :number_of_quantiles, :source_name
+    def initialize(source_name, max_files, number_of_quantiles = 5)
+      @source_name = source_name
       @max_files = max_files
       @number_of_quantiles = number_of_quantiles
     end
@@ -78,19 +64,19 @@ module SpongesAndFilters
     end
 
     def get_rows
-      s3_bucket.objects.with_prefix("signature_counts/part-").map {|s3_object|
+      s3_bucket.objects.with_prefix("#{source_name}/part-").map {|s3_object|
         next if @seen > max_files
         @seen += 1
         gunzip(s3_object.read).split("\n")[1..-1] # ignore headers
       }.compact.flatten
     end
 
-    # build a hash of uid => signature_count
-    def signatures
-      @signatures ||= begin
+    # build a hash of uid => raw_value
+    def hash
+      @hash ||= begin
         Hash[each_row.map {|l|
-            uid, signature_count = l.chomp.split("\t")
-            [uid.to_i, signature_count.to_i]
+            uid, val = l.chomp.split("\t")
+            [uid.to_i, val.to_f]
           }]
       end
     end
@@ -98,8 +84,8 @@ module SpongesAndFilters
     def quantile_users
       quantiles = [[]]
       current_quantile = 0
-      signatures.sort_by {|k,v| v }.each_slice(users_per_quantile) {|slice|
-        slice.each {|uid, signature_count|
+      hash.sort_by {|k,v| v }.each_slice(users_per_quantile) {|slice|
+        slice.each {|uid, val|
           quantiles[current_quantile] << uid
           if quantiles[current_quantile].size > users_per_quantile
             current_quantile += 1 
@@ -119,7 +105,7 @@ module SpongesAndFilters
     end
 
     def users_per_quantile
-      @users_per_quantile ||= signatures.count / number_of_quantiles
+      @users_per_quantile ||= hash.count / number_of_quantiles
     end
   end
 end
