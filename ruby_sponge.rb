@@ -82,6 +82,7 @@ module SpongesAndFilters
         @seen += 1
         gunzip(s3_object.read).split("\n")[1..-1] # ignore headers
       }.compact.flatten
+    end
 
     # build a hash of uid => signature_count
     def signatures
