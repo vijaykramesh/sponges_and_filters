@@ -78,7 +78,7 @@ class Controller
         --slave-instance-type  c1.xlarge \
         --num-instances "#{num_instances}" \
         --jar "s3n:#{s3_jar_path}" \
-        --args emr,"#{which_round}", "#{which_source}", "#{num_files}" \
+        --args emr,"#{which_round}","#{which_source}","#{num_files}" \
         --log-uri "s3n:#{s3_project_root}/logs" \
         --visible-to-all-users
     SH
