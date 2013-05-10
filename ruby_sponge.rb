@@ -68,14 +68,19 @@ module SpongesAndFilters
     # returns an array of chomped lines
     def each_row
       @each_row ||= begin
-        seen = 1 # can't use .take(max_files) with aws-sdk as it forces all file objects to get statted
-        s3_bucket.objects.with_prefix("signature_counts/part-").map {|s3_object|
-          next if seen > max_files
-          seen += 1
-          gunzip(s3_object.read).split("\n")[1..-1] # ignore headers
-        }.compact.flatten
+        @seen = 1 # can't use .take(max_files) with aws-sdk as it forces all file objects to get statted
+        rows = get_rows()
+        while @seen < max_files
+          rows += get_rows()
       end
     end
+
+    def get_rows(seen)
+      s3_bucket.objects.with_prefix("signature_counts/part-").map {|s3_object|
+        next if @seen > max_files
+        @seen += 1
+        gunzip(s3_object.read).split("\n")[1..-1] # ignore headers
+      }.compact.flatten
 
     # build a hash of uid => signature_count
     def signatures
