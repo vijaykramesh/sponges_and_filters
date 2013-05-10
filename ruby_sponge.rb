@@ -3,6 +3,7 @@ require 'benchmark'
 require 'json'
 
 require './etc/s3_config'
+require './lib/memory_analyzer'
 
 module SpongesAndFilters
 
@@ -10,11 +11,36 @@ module SpongesAndFilters
 
     def self.soak
       Benchmark.bm do |s|
-        s.report("1 file")    { JSON.pretty_generate(new(1).quantile_stats)  }
-        s.report("2 files")   { JSON.pretty_generate(new(2).quantile_stats)  }
-        s.report("10 file")   { JSON.pretty_generate(new(10).quantile_stats) }
-        s.report("100 file")  { JSON.pretty_generate(new(10).quantile_stats) }
-        s.report("1000 file") { JSON.pretty_generate(new(10).quantile_stats) }
+        s.report("1 file") {
+          sponge = new(1)
+          puts JSON.pretty_generate(sponge.quantile_stats)
+          puts MemoryAnalyzer.new(sponge).calculate_size.to_f / 1024.0
+        }
+
+        s.report("2 files")   {
+          stats = new(2).quantile_stats
+          size = MemoryAnalyzer.new(stats).calculate_size
+          puts JSON.pretty_generate(stats)
+          puts size.to_f/ 1024.0
+        }
+        # s.report("10 files")   {
+        #   stats = new(10).quantile_statss
+        #   size = Knj::Memory_analyzer::Object_size_counter.new(stats).calculate_size
+        #   puts JSON.pretty_generate(stats)
+        #   puts size.to_f/ 1024.0
+        # }
+        # s.report("100 files")   {
+        #   stats = new(100).quantile_statss
+        #   size = Knj::Memory_analyzer::Object_size_counter.new(stats).calculate_size
+        #   puts JSON.pretty_generate(stats)
+        #   puts size.to_f/ 1024.0
+        # }
+        # s.report("1000 files")   {
+        #   stats = new(1000).quantile_statss
+        #   size = Knj::Memory_analyzer::Object_size_counter.new(stats).calculate_size
+        #   puts JSON.pretty_generate(stats)
+        #   puts size.to_f/ 1024.0
+        # }
       end
     end
 
