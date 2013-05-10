@@ -12,6 +12,7 @@ module SpongesAndFilters
 
       if max_files
         sponge = new(source_name, max_files)
+        sponge.write_quantiled
         puts JSON.pretty_generate(sponge.quantile_stats)
       else
         Benchmark.bm do |s|
@@ -43,10 +44,18 @@ module SpongesAndFilters
       @number_of_quantiles = number_of_quantiles
     end
 
+    def write_quantiled
+      s3_bucket.objects["ruby_sponge/#{source_name}/#{max_files}/quantiled"].write(
+        quantiled_users.each_with_index.map {|users, quantile_index|
+          users.map {|uid| [uid, quantile_index].join("\t") }
+        }.flatten.join("\n")
+      )
+    end
+
     def quantile_stats
-      Hash[quantile_users.each_with_index.map {|u,i|
+      Hash[quantiled_users.each_with_index.map {|u,i|
         [i, u.count]
-      }].merge({"total" => quantile_users.flatten.count})
+      }].merge({"total" => quantiled_users.flatten.count})
     end
 
     private
@@ -81,19 +90,22 @@ module SpongesAndFilters
       end
     end
 
-    def quantile_users
-      quantiles = [[]]
-      current_quantile = 0
-      hash.sort_by {|k,v| v }.each_slice(users_per_quantile) {|slice|
-        slice.each {|uid, val|
-          quantiles[current_quantile] << uid
-          if quantiles[current_quantile].size > users_per_quantile
-            current_quantile += 1 
-            quantiles << []
-          end
+    def quantiled_users
+      @quantiled_users ||= begin
+        [].tap {|quantiles|
+          quantiles << []
+          current_quantile = 0
+          hash.sort_by {|k,v| v }.each_slice(users_per_quantile) {|slice|
+            slice.each {|uid, val|
+              quantiles[current_quantile] << uid
+              if quantiles[current_quantile].size > users_per_quantile
+                current_quantile += 1
+                quantiles << []
+              end
+            }
+          }
         }
-      }
-      quantiles
+      end
     end
 
     def s3_bucket
