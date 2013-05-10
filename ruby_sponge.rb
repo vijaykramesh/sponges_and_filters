@@ -72,6 +72,7 @@ module SpongesAndFilters
         rows = get_rows()
         while @seen < max_files
           rows += get_rows()
+        end
       end
     end
 
