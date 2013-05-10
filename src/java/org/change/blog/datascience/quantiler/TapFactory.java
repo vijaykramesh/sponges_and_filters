@@ -13,9 +13,13 @@ import java.util.Properties;
 
 public class TapFactory implements Serializable {
 
+  static protected Scheme tsv() {
+    return tsv(Fields.ALL);
+  }
+
   static protected Scheme tsv(Fields fields) {
     TextDelimited scheme = new TextDelimited(fields, true, true, "\t");
-    scheme.setNumSinkParts(1);
+    scheme.setNumSinkParts(10);
     return scheme;
   }
 
@@ -40,9 +44,9 @@ public class TapFactory implements Serializable {
   }
 
 
-  public Tap quantiledSink(String name, Fields fields) {
+  public Tap quantiledSink(String name) {
     return new Hfs(
-        tsv(fields),
+        tsv(),
         path(dataRoot, "quantiled", name));
   }
 

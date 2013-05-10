@@ -1,3 +1,9 @@
+GIT
+  remote: git://github.com/vijaykramesh/elastic-mapreduce-ruby.git
+  revision: b2f449e907adba752b5124d92a0046045e95f78f
+  specs:
+    elastic-mapreduce (0.1.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -14,3 +20,4 @@ PLATFORMS
 
 DEPENDENCIES
   aws-sdk
+  elastic-mapreduce!
