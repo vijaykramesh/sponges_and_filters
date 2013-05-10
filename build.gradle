@@ -1,0 +1,82 @@
+/*
+ * Copyright (c) 2007-2011 Concurrent, Inc. All Rights Reserved.
+ *
+ * Project and contact information: http://www.concurrentinc.com/
+ */
+import java.text.SimpleDateFormat
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'application'
+
+sourceSets {
+  main {
+    java.srcDir 'src/java'
+  }
+
+  test {
+    java.srcDir 'src/test'
+  }
+}
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+  mavenRepo name: 'conjars', url: 'http://conjars.org/repo/'
+}
+
+dependencies {
+  compile('cascading:cascading-core:2.0+') { exclude group: 'log4j' }
+  compile('cascading:cascading-xml:2.0+')
+  compile('cascading:cascading-hadoop:2.0+') { transitive = false }
+  compile('cascading:cascading-local:2.0+')
+  compile('com.google.code.gson:gson:2.2.2')
+  testCompile("cascading:cascading-test:2.0+")
+}
+
+mainClassName = "org.change.blog.datascience.quantiler.Controller"
+
+jar {
+  description = "Assembles a Hadoop ready jar file"
+  doFirst {
+    into('lib') {
+      from configurations.compile
+    }
+  }
+
+  manifest {
+  attributes("Main-Class": "org.change.blog.datascience.quantiler.Controller")
+  }
+
+  from('etc') {
+    include('*.properties')
+  }
+}
+
+task distCopy(type: Copy, dependsOn: jar) {
+
+  into "${buildDir}/dist/${archivesBaseName}"
+
+  from 'README.TXT'
+  from 'build.gradle'
+  from('src') {into 'src'}
+  from('data') {into 'data'}
+
+  from "$buildDir/libs"
+
+}
+
+task dist(type: Tar, dependsOn: distCopy) {
+
+  compression = "GZIP"
+  classifier = new SimpleDateFormat("yyyyMMdd").format(new Date())
+
+  from "${buildDir}/dist/"
+}
+
+// FIXME
+task runJar(dependsOn: jar){
+  ant.java(
+    jar: "build/libs/quantiler.jar",
+    fork: true )
+}

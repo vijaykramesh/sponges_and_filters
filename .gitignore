@@ -1,3 +1,7 @@
+.gradle
+.idea
+build
+*.iml
 *.gem
 *.rbc
 .bundle
