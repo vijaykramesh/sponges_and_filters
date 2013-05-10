@@ -14,7 +14,7 @@ module SpongesAndFilters
       if max_files
         sponge = new(max_files)
         puts JSON.pretty_generate(sponge.quantile_stats)
-        puts MemoryAnalyzer.new(sponge).calculate_size.to_f / 1024.0
+        # puts MemoryAnalyzer.new(sponge).calculate_size.to_f / 1024.0
       else
         Benchmark.bm do |s|
           s.report("1 file") {
