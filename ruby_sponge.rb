@@ -73,6 +73,7 @@ module SpongesAndFilters
         while @seen < max_files
           rows += get_rows
         end
+        rows
       end
     end
 
