@@ -9,38 +9,45 @@ module SpongesAndFilters
 
   class RubySponge
 
-    def self.soak
-      Benchmark.bm do |s|
-        s.report("1 file") {
-          sponge = new(1)
-          puts JSON.pretty_generate(sponge.quantile_stats)
-          puts MemoryAnalyzer.new(sponge).calculate_size.to_f / 1024.0
-        }
+    def self.soak(max_files = nil)
 
-        s.report("2 files")   {
-          stats = new(2).quantile_stats
-          size = MemoryAnalyzer.new(stats).calculate_size
-          puts JSON.pretty_generate(stats)
-          puts size.to_f/ 1024.0
-        }
-        # s.report("10 files")   {
-        #   stats = new(10).quantile_statss
-        #   size = Knj::Memory_analyzer::Object_size_counter.new(stats).calculate_size
-        #   puts JSON.pretty_generate(stats)
-        #   puts size.to_f/ 1024.0
-        # }
-        # s.report("100 files")   {
-        #   stats = new(100).quantile_statss
-        #   size = Knj::Memory_analyzer::Object_size_counter.new(stats).calculate_size
-        #   puts JSON.pretty_generate(stats)
-        #   puts size.to_f/ 1024.0
-        # }
-        # s.report("1000 files")   {
-        #   stats = new(1000).quantile_statss
-        #   size = Knj::Memory_analyzer::Object_size_counter.new(stats).calculate_size
-        #   puts JSON.pretty_generate(stats)
-        #   puts size.to_f/ 1024.0
-        # }
+      if max_files
+        sponge = new(max_files)
+        puts JSON.pretty_generate(sponge.quantile_stats)
+        puts MemoryAnalyzer.new(sponge).calculate_size.to_f / 1024.0
+      else
+        Benchmark.bm do |s|
+          s.report("1 file") {
+            sponge = new(1)
+            puts JSON.pretty_generate(sponge.quantile_stats)
+            puts MemoryAnalyzer.new(sponge).calculate_size.to_f / 1024.0
+          }
+
+          s.report("2 files")   {
+            stats = new(2).quantile_stats
+            size = MemoryAnalyzer.new(stats).calculate_size
+            puts JSON.pretty_generate(stats)
+            puts size.to_f/ 1024.0
+          }
+          s.report("10 files")   {
+            stats = new(10).quantile_stats
+            size = MemoryAnalyzer.new(stats).calculate_size
+            puts JSON.pretty_generate(stats)
+            puts size.to_f/ 1024.0
+          }
+          s.report("100 files")   {
+           stats = new(100).quantile_stats
+            size = MemoryAnalyzer.new(stats).calculate_size
+            puts JSON.pretty_generate(stats)
+            puts size.to_f/ 1024.0
+          }
+          # s.report("1000 files")   {
+          #   stats = new(1000).quantile_statss
+          #   size = Knj::Memory_analyzer::Object_size_counter.new(stats).calculate_size
+          #   puts JSON.pretty_generate(stats)
+          #   puts size.to_f/ 1024.0
+          # }
+        end
       end
     end
 
@@ -53,7 +60,7 @@ module SpongesAndFilters
     def quantile_stats
       Hash[quantile_users.each_with_index.map {|u,i|
         [i, u.count]
-      }]
+      }].merge({"total" => quantile_users.flatten.count})
     end
 
     private
