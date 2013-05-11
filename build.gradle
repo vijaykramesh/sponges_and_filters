@@ -31,6 +31,7 @@ dependencies {
   compile('cascading:cascading-hadoop:2.0+') { transitive = false }
   compile('cascading:cascading-local:2.0+')
   compile('com.google.code.gson:gson:2.2.2')
+  compile('commons-lang:commons-lang:2.6')
   testCompile("cascading:cascading-test:2.0+")
 }
 
@@ -77,6 +78,6 @@ task dist(type: Tar, dependsOn: distCopy) {
 // FIXME
 task runJar(dependsOn: jar){
   ant.java(
-    jar: "build/libs/quantiler.jar",
+    jar: "build/libs/sponges_and_filters.jar",
     fork: true )
 }

@@ -1,3 +1,6 @@
+etc/credentials.json
+var
+logs
 .gradle
 .idea
 build
