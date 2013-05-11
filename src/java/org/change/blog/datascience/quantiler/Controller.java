@@ -6,9 +6,10 @@ import cascading.cascade.CascadeDef;
 import cascading.flow.FlowConnector;
 import cascading.flow.hadoop.HadoopFlowConnector;
 import cascading.property.AppProps;
-import cascading.tap.Tap;
 import cascading.tuple.Fields;
-import org.change.blog.datascience.quantiler.util.Quantiler;
+import org.change.blog.datascience.quantiler.util.Feature;
+import org.change.blog.datascience.quantiler.util.NewQuantiler;
+import org.change.blog.datascience.quantiler.util.OldQuantiler;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,9 +56,14 @@ public class Controller extends CascadeDef {
     AppProps.setApplicationJarClass(
         properties, Controller.class);
 
+    if (whichRound.equals("old") || whichRound.equals("both")){
+      addFlow(flowConnector.connect(new OldQuantiler(whichSource, new Fields("signature_count_0d"), new Fields("user_id"), tapFactory)));
+    }
 
+    if(whichRound.equals("new") || whichRound.equals("both")){
+      addFlow(flowConnector.connect(new NewQuantiler(whichSource, new Fields("signature_count_0d"), new Fields("user_id"), tapFactory)));
+    }
 
-    addFlow(flowConnector.connect(new Quantiler(whichSource, new Fields("signature_count_0d"), new Fields("user_id"), tapFactory)));
 
 
     Cascade cascade = new CascadeConnector().connect(this);

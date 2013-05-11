@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Random;
 
 
-public class Quantiler extends Feature{
+public class OldQuantiler extends Feature{
   public static final int DEFAULT_DOWNSAMPLE_TARGET = 10000;
   public static final int DEFAULT_NUM_QUANTILES = 5;
 
@@ -122,7 +122,7 @@ public class Quantiler extends Feature{
     // in that order, but not necc. with those names
     // NB: total_count is the same for all fields,
     // and is the total number of records in the set
-    // we're downsampling. Check out Quantiler.Counter.
+    // we're downsampling. Check out OldQuantiler.Counter.
     Downsampler(int downsampleTarget) {
       this(downsampleTarget, null);
     }
@@ -381,14 +381,14 @@ public class Quantiler extends Feature{
 
       for (int i =1; i < args.getFields().size(); i++){
         if (args.getString(i).equals("1")){
-          context.quantile = String.valueOf(i - 1);
+          Tuple result = new Tuple(2);
+          result.clear();
+          result.add(args.getString("user_id"));
+          result.add(String.valueOf(i - 1));
+          call.getOutputCollector().add(result);
         }
       }
-      Tuple result = new Tuple(2);
-      result.clear();
-      result.add(args.getString("user_id"));
-      result.add(context.quantile);
-      call.getOutputCollector().add(result);
+
     }
   }
 
@@ -401,11 +401,11 @@ public class Quantiler extends Feature{
     return new Fields("user_id", "feature_name", "feature_value");
   }
 
-  public Quantiler(String source, Fields baseField, Fields keys, TapFactory tapFactory) {
+  public OldQuantiler(String source, Fields baseField, Fields keys, TapFactory tapFactory) {
     this(source, baseField, keys, tapFactory, DEFAULT_NUM_QUANTILES, DEFAULT_DOWNSAMPLE_TARGET, null);
   }
 
-  public Quantiler(
+  public OldQuantiler(
       String source,
       Fields baseField,
       Fields keys,
@@ -415,7 +415,7 @@ public class Quantiler extends Feature{
       Long randomSeed
   ) {
     super(tapFactory, DebugLevel.DEFAULT);
-    setName(source + "/quantiled");
+    setName(source + "/old_quantiled");
 
     if (baseField.size() != 1)
       throw new IllegalArgumentException(
@@ -458,6 +458,7 @@ public class Quantiler extends Feature{
                 keys.append(new Fields("filtered")) ),
             new Fields("filtered"),
             field );
+//    addTailSink(new Pipe(source + "_filtered", filtered));
 
     // We have to count both before and after the downsampler
     Pipe downsampled =
@@ -468,6 +469,7 @@ public class Quantiler extends Feature{
                 new Downsampler(downsampleTarget, randomSeed),
                 new Fields("downsampled") ),
             new Fields("downsampled"), field ) );
+//    addTailSink(new Pipe(source + "_downsampled", downsampled));
 
     Pipe demarcated =
         new Every(
@@ -477,6 +479,7 @@ public class Quantiler extends Feature{
             new Fields("total_count").append(field),
             new Demarcator(numQuantiles),
             new Fields("boundaries") );
+//    addTailSink(new Pipe(source + "_demarcated", demarcated));
 
     Pipe withBoundaries = new Pipe(source + "/withBoundaries",
         new HashJoin(
@@ -484,6 +487,7 @@ public class Quantiler extends Feature{
             Fields.NONE,
             filtered,
             Fields.NONE ) );
+//    addTailSink(new Pipe(source + "_boundaries", withBoundaries));
 
     this.fields = keys.append(Replacer.outputSelector(field, numQuantiles));
 
@@ -493,6 +497,8 @@ public class Quantiler extends Feature{
         new Replacer(field, numQuantiles),
         fields);
 
+//    addTailSink(new Pipe(source + "_replaced", replaced));
+
     Pipe munged = new Each(
         replaced,
         fields,
@@ -500,6 +506,6 @@ public class Quantiler extends Feature{
         new Fields("user_id", "quantile")
     );
 
-    addTailSink(new Pipe(source + "_quantiled", munged));
+    addTailSink(new Pipe(source + "_old_quantiled", munged));
   }
 }

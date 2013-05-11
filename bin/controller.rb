@@ -9,9 +9,19 @@ class Controller
 
   PROJECT_ROOT = File.expand_path(File.dirname(__FILE__) + "/..")
 
-  class Quantile < Controller
+  class Old < Controller
     def num_instances ; 10 ; end
-    def which_round ; "quantile" ; end
+    def which_round ; "old" ; end
+  end
+
+  class New < Controller
+    def num_instances ; 10 ; end
+    def which_round ; "new" ; end
+  end
+
+  class Both < Controller
+    def num_instances ; 10 ; end
+    def which_round ; "both" ; end
   end
 
   def self.run(which_round, which_source, num_files)
@@ -19,7 +29,7 @@ class Controller
       eval(which_round.capitalize).new(which_source, num_files).run
     rescue Exception => e
       puts e
-      raise ArgumentError, "Usage: $0 (quantile) which_source num_files?"
+      raise ArgumentError, "Usage: $0 (old|new|both) which_source num_files?"
     end
   end
 
