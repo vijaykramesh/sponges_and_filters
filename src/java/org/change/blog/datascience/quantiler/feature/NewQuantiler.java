@@ -1,4 +1,4 @@
-package org.change.blog.datascience.quantiler.util;
+package org.change.blog.datascience.quantiler.feature;
 
 import cascading.flow.FlowProcess;
 import cascading.operation.*;
@@ -11,9 +11,6 @@ import org.change.blog.datascience.quantiler.TapFactory;
 
 import java.io.Serializable;
 import java.util.Comparator;
-import java.util.Random;
-
-
 import java.util.Random;
 
 // TODO we might want to make this abstract and explicitly require
@@ -128,11 +125,9 @@ public class NewQuantiler extends Feature {
   }
 
 
-
   static class Munger
       extends BaseOperation<Munger.Context>
-      implements Function<Munger.Context>
-  {
+      implements Function<Munger.Context> {
     class Context {
 
       String quantile;
@@ -156,12 +151,12 @@ public class NewQuantiler extends Feature {
       Context context = call.getContext();
       TupleEntry args = call.getArguments();
 
-      for (int i =1; i < args.getFields().size(); i++){
-        if (args.getString(i).equals("1")){
+      for (int i = 1; i < args.getFields().size(); i++) {
+        if (args.getString(i).equals("1")) {
           Tuple result = new Tuple(2);
           result.clear();
           result.add(args.getString("user_id"));
-          result.add( String.valueOf(i - 1));
+          result.add(String.valueOf(i - 1));
           call.getOutputCollector().add(result);
         }
       }

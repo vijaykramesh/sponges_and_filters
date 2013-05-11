@@ -1,4 +1,4 @@
-package org.change.blog.datascience.quantiler.util;
+package org.change.blog.datascience.quantiler.feature;
 
 import cascading.flow.FlowProcess;
 import cascading.operation.*;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Random;
 
 
-public class OldQuantiler extends Feature{
+public class OldQuantiler extends Feature {
   public static final int DEFAULT_DOWNSAMPLE_TARGET = 10000;
   public static final int DEFAULT_NUM_QUANTILES = 5;
 
@@ -44,8 +44,7 @@ public class OldQuantiler extends Feature{
 
     class RandomKeyGenerator
         extends BaseOperation<Stash>
-        implements cascading.operation.Function<Stash>
-    {
+        implements cascading.operation.Function<Stash> {
       int breakdownFactor;
 
       RandomKeyGenerator() {
@@ -80,15 +79,15 @@ public class OldQuantiler extends Feature{
 
       String name = data.getName();
 
-      Pipe randomKeys = new Each( data,
+      Pipe randomKeys = new Each(data,
           Fields.NONE,
           new RandomKeyGenerator(),
-          new Fields("random_key") );
+          new Fields("random_key"));
 
       Pipe firstCount = new CountBy(
           randomKeys,
           new Fields("random_key"),
-          new Fields("first_count") );
+          new Fields("first_count"));
 
       firstCount = new Retain(firstCount, new Fields("first_count"));
 
@@ -98,23 +97,22 @@ public class OldQuantiler extends Feature{
           Fields.NONE, // grouping by Fields.NONE groups all the values under a single aggregator call
           new Fields("first_count"),
           new Fields("total_count"),
-          Integer.TYPE );
+          Integer.TYPE);
 
       totalCount = new Retain(totalCount, new Fields("total_count"));
 
-      setTails( new Pipe( name,
+      setTails(new Pipe(name,
           new HashJoin(
               new Checkpoint(totalCount),
               Fields.NONE,
               data,
-              Fields.NONE ) ) );
+              Fields.NONE)));
     }
   }
 
   static class Downsampler
       extends BaseOperation<Stash>
-      implements Function<Stash>
-  {
+      implements Function<Stash> {
     int downsampleTarget;
     Long randomSeed;
 
@@ -138,7 +136,7 @@ public class OldQuantiler extends Feature{
       Stash stash = (
           randomSeed == null
               ? new Stash(size)
-              : new Stash(size, randomSeed) );
+              : new Stash(size, randomSeed));
 
       call.setContext(stash);
     }
@@ -183,8 +181,7 @@ public class OldQuantiler extends Feature{
 
   static class Demarcator
       extends BaseOperation<Demarcator.Context>
-      implements Aggregator<Demarcator.Context>
-  {
+      implements Aggregator<Demarcator.Context> {
     class Context {
       Tuple result;
       Integer totalCount;
@@ -209,7 +206,7 @@ public class OldQuantiler extends Feature{
               // much simpler and more flexible to indicate internal boundaries only:
               // no (end) boundary conditions at all! everything off the end of the
               // list in either direction is just in the highest or lowest bucket
-              "only run this function through numQuantiles - 2: boundary array denotes internal boundaries only!" );
+              "only run this function through numQuantiles - 2: boundary array denotes internal boundaries only!");
 
         if (totalCount == null)
           throw new RuntimeException("Must set totalCount first!");
@@ -235,7 +232,7 @@ public class OldQuantiler extends Feature{
         result.clear(); // not necessary, I think
         result.add(
             StringUtils.join(boundaries(numQuantiles),
-                BOUNDARY_SEPARATOR_CHARACTER) );
+                BOUNDARY_SEPARATOR_CHARACTER));
         return result;
       }
     }
@@ -269,7 +266,7 @@ public class OldQuantiler extends Feature{
 
     public void complete(FlowProcess flow, AggregatorCall<Context> call) {
       call.getOutputCollector().add(
-          call.getContext().calculateResult(numQuantiles) );
+          call.getContext().calculateResult(numQuantiles));
     }
   }
 
@@ -277,8 +274,7 @@ public class OldQuantiler extends Feature{
   // where boundaries is the output of Demarcator, above
   static class Replacer
       extends BaseOperation<Replacer.Context>
-      implements Function<Replacer.Context>
-  {
+      implements Function<Replacer.Context> {
     class Context {
       float[] boundaries;
       Tuple result;
@@ -292,7 +288,7 @@ public class OldQuantiler extends Feature{
       void setBoundaries(String boundariesString) {
         String[] split = StringUtils.split(
             boundariesString,
-            BOUNDARY_SEPARATOR_CHARACTER );
+            BOUNDARY_SEPARATOR_CHARACTER);
 
         boundaries = new float[split.length];
 
@@ -349,13 +345,13 @@ public class OldQuantiler extends Feature{
         context.setBoundaries(args.getString(0));
 
       call.getOutputCollector().add(
-          context.result(args.getFloat(1)) );
+          context.result(args.getFloat(1)));
     }
   }
+
   static class Munger
       extends BaseOperation<Munger.Context>
-      implements Function<Munger.Context>
-  {
+      implements Function<Munger.Context> {
     class Context {
 
       String quantile;
@@ -379,8 +375,8 @@ public class OldQuantiler extends Feature{
       Context context = call.getContext();
       TupleEntry args = call.getArguments();
 
-      for (int i =1; i < args.getFields().size(); i++){
-        if (args.getString(i).equals("1")){
+      for (int i = 1; i < args.getFields().size(); i++) {
+        if (args.getString(i).equals("1")) {
           Tuple result = new Tuple(2);
           result.clear();
           result.add(args.getString("user_id"));
@@ -397,7 +393,7 @@ public class OldQuantiler extends Feature{
   Fields fields;
   Long randomSeed;
 
-  public Fields fields(){
+  public Fields fields() {
     return new Fields("user_id", "feature_name", "feature_value");
   }
 
@@ -419,7 +415,7 @@ public class OldQuantiler extends Feature{
 
     if (baseField.size() != 1)
       throw new IllegalArgumentException(
-          "field.size() must == 1 !" );
+          "field.size() must == 1 !");
 
     // TODO: Boo. Fix this. Probs by making featureDefinition something more sensible, and having it encapsulate
     // the fact that it refers to a particular timeBucket range, for example. Separate class? Just have the fD
@@ -439,7 +435,7 @@ public class OldQuantiler extends Feature{
     Fields totalCount = new Fields("total_count");
 
 
-    Pipe data = getCountSource(source, fields );
+    Pipe data = getCountSource(source, fields);
     Pipe retained = new Retain(data, fields);
 
     // Have to filter out the bad values ourselves, cause our first otherwise-necessary attempt to parse any numeric
@@ -455,30 +451,30 @@ public class OldQuantiler extends Feature{
                 new Pipe(source + "/filtered", retained),
                 field,
                 new FloatFilter(),
-                keys.append(new Fields("filtered")) ),
+                keys.append(new Fields("filtered"))),
             new Fields("filtered"),
-            field );
+            field);
 //    addTailSink(new Pipe(source + "_filtered", filtered));
 
     // We have to count both before and after the downsampler
     Pipe downsampled =
-        new Counter( new Rename(
+        new Counter(new Rename(
             new Each(
                 new Counter(new Pipe(source + "/downsampled", filtered)),
                 totalCount.append(field),
                 new Downsampler(downsampleTarget, randomSeed),
-                new Fields("downsampled") ),
-            new Fields("downsampled"), field ) );
+                new Fields("downsampled")),
+            new Fields("downsampled"), field));
 //    addTailSink(new Pipe(source + "_downsampled", downsampled));
 
     Pipe demarcated =
         new Every(
             new GroupBy(
                 new Pipe(source + "/demarcated", downsampled),
-                Fields.NONE ),
+                Fields.NONE),
             new Fields("total_count").append(field),
             new Demarcator(numQuantiles),
-            new Fields("boundaries") );
+            new Fields("boundaries"));
 //    addTailSink(new Pipe(source + "_demarcated", demarcated));
 
     Pipe withBoundaries = new Pipe(source + "/withBoundaries",
@@ -486,7 +482,7 @@ public class OldQuantiler extends Feature{
             new Checkpoint(demarcated),
             Fields.NONE,
             filtered,
-            Fields.NONE ) );
+            Fields.NONE));
 //    addTailSink(new Pipe(source + "_boundaries", withBoundaries));
 
     this.fields = keys.append(Replacer.outputSelector(field, numQuantiles));

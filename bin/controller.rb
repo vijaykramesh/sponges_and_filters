@@ -24,9 +24,9 @@ class Controller
     def which_round ; "both" ; end
   end
 
-  def self.run(which_round, which_source, num_files)
+  def self.run(which_round, which_source, comment=nil)
     begin
-      eval(which_round.capitalize).new(which_source, num_files).run
+      eval(which_round.capitalize).new(which_source, comment).run
     rescue Exception => e
       puts e
       raise ArgumentError, "Usage: $0 (old|new|both) which_source num_files?"
@@ -41,11 +41,11 @@ class Controller
     system(squeeze_command(cmd))
   end
 
-  attr_accessor :which_source, :num_files
+  attr_accessor :which_source, :comment
 
-  def initialize(which_source, num_files)
+  def initialize(which_source, comment)
     @which_source = which_source
-    @num_files = num_files
+    @comment = comment
   end
 
   def job_name
@@ -61,7 +61,7 @@ class Controller
   end
 
   def emr_name
-    "#{`git config user.name`.chomp}: #{job_name} #{which_round}"
+    "#{`git config user.name`.chomp}: #{job_name} #{which_round} #{comment}"
   end
 
   def s3_jar_path
@@ -88,7 +88,7 @@ class Controller
         --slave-instance-type  c1.xlarge \
         --num-instances "#{num_instances}" \
         --jar "s3n:#{s3_jar_path}" \
-        --args emr,"#{which_round}","#{which_source}","#{num_files}" \
+        --args emr,"#{which_round}","#{which_source}" \
         --log-uri "s3n:#{s3_project_root}/logs" \
         --visible-to-all-users
     SH

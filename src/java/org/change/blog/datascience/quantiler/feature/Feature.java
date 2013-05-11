@@ -1,4 +1,4 @@
-package org.change.blog.datascience.quantiler.util;
+package org.change.blog.datascience.quantiler.feature;
 
 import cascading.flow.FlowDef;
 import cascading.operation.DebugLevel;
@@ -7,8 +7,6 @@ import cascading.tuple.Fields;
 import org.change.blog.datascience.quantiler.TapFactory;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
