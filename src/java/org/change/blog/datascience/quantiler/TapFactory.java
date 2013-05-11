@@ -25,12 +25,14 @@ public class TapFactory implements Serializable {
 
 
   protected String dataRoot;
+  protected String jobName;
 
   protected TapFactory() {
   }
 
   public TapFactory(Properties properties) {
     dataRoot = properties.getProperty("data.root");
+    jobName = properties.getProperty("jobName");
   }
 
   public String path(String... args) {
@@ -47,7 +49,7 @@ public class TapFactory implements Serializable {
   public Tap quantiledSink(String name) {
     return new Hfs(
         tsv(),
-        path(dataRoot, "quantiled", name));
+        path(dataRoot, jobName, "quantiled", name));
   }
 
 }
