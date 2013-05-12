@@ -15,7 +15,7 @@ class Controller
   end
 
   class New < Controller
-    def num_instances ; 10 ; end
+    def num_instances ; 10; end
     def which_round ; "new" ; end
   end
 

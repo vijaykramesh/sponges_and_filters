@@ -3,6 +3,7 @@ package org.change.blog.datascience.quantiler;
 import cascading.cascade.Cascade;
 import cascading.cascade.CascadeConnector;
 import cascading.cascade.CascadeDef;
+import cascading.flow.Flow;
 import cascading.flow.FlowConnector;
 import cascading.flow.hadoop.HadoopFlowConnector;
 import cascading.property.AppProps;
@@ -21,6 +22,7 @@ public class Controller extends CascadeDef {
   public static Properties buildProperties(String environment) throws IOException {
     Properties props = new Properties();
     props.load(getResourceAsStream(environment + ".properties"));
+    props.setProperty("environment", environment);
     return props;
   }
 
@@ -56,19 +58,25 @@ public class Controller extends CascadeDef {
         properties, Controller.class);
 
     if (whichRound.equals("old") || whichRound.equals("both")) {
-      addFlow(flowConnector.connect(new OldQuantiler(whichSource, new Fields("signature_count_0d"), new Fields("user_id"), tapFactory)));
+      addFlow(writeDot(flowConnector.connect(new OldQuantiler(whichSource, new Fields("signature_count_0d"), new Fields("user_id"), tapFactory))));
     }
 
     if (whichRound.equals("new") || whichRound.equals("both")) {
-      addFlow(flowConnector.connect(new NewQuantiler(whichSource, new Fields("signature_count_0d"), new Fields("user_id"), tapFactory)));
+      addFlow(writeDot(flowConnector.connect(new NewQuantiler(whichSource, new Fields("signature_count_0d"), new Fields("user_id"), tapFactory))));
     }
 
 
-    Cascade cascade = new CascadeConnector().connect(this);
 
+
+    Cascade cascade = new CascadeConnector().connect(this);
     cascade.complete();
 
   }
 
+  protected Flow writeDot(Flow flow) {
+    if (this.properties.getProperty("environment").equals("local"))
+      flow.writeDOT( "var/dot/" + flow.getName() + ".dot" );
+    return flow;
+  }
 
 }
