@@ -1,0 +1,35 @@
+
+<!-- saved from url=(0098)http://localhost:9100/jobtasks.jsp?jobid=job_201305130129_0001&type=reduce&pagenum=1&state=running -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Hadoop reduce task list for job_201305130129_0001 on ip-10-244-135-4</title>
+    <link rel="stylesheet" type="text/css" href="./new_heap_overflow_files/hadoop.css">
+  </head>
+<body>
+<h1>Hadoop reduce task list for 
+<a href="http://localhost:9100/jobdetails.jsp?jobid=job_201305130129_0001">job_201305130129_0001</a> on 
+<a href="http://localhost:9100/jobtracker.jsp">ip-10-244-135-4</a></h1>
+<hr><h2>Running Tasks</h2><center><table border="2" cellpadding="5" cellspacing="2"><tbody><tr><td align="center">Task</td><td>Complete</td><td>Status</td><td>Start Time</td><td>Finish Time</td><td>Errors</td><td>Counters</td></tr><tr><td><a href="http://localhost:9100/taskdetails.jsp?tipid=task_201305130129_0001_r_000001">task_201305130129_0001_r_000001</a></td><td>66.69%<table border="1px" width="80px"><tbody><tr><td cellspacing="0" class="perc_filled" width="66%"></td><td cellspacing="0" class="perc_nonfilled" width="34%"></td></tr></tbody></table></td><td>reduce &gt; reduce<br></td><td>13-May-2013 01:33:38<br></td>
+<td><br></td>
+<td><pre>Error: java.lang.OutOfMemoryError: Java heap space
+	at org.apache.hadoop.mapred.ReduceTask$ReduceCopier$MapOutputCopier.shuffleInMemory(ReduceTask.java:1711)
+	at org.apache.hadoop.mapred.ReduceTask$ReduceCopier$MapOutputCopier.getMapOutput(ReduceTask.java:1571)
+	at org.apache.hadoop.mapred.ReduceTask$ReduceCopier$MapOutputCopier.copyOutput(ReduceTask.java:1412)
+	at org.apache.hadoop.mapred.ReduceTask$ReduceCopier$MapOutputCopier.run(ReduceTask.java:1344)
+
+Error: java.lang.OutOfMemoryError: Java heap space
+	at org.apache.hadoop.mapred.ReduceTask$ReduceCopier$MapOutputCopier.shuffleInMemory(ReduceTask.java:1711)
+	at org.apache.hadoop.mapred.ReduceTask$ReduceCopier$MapOutputCopier.getMapOutput(ReduceTask.java:1571)
+	at org.apache.hadoop.mapred.ReduceTask$ReduceCopier$MapOutputCopier.copyOutput(ReduceTask.java:1412)
+	at org.apache.hadoop.mapred.ReduceTask$ReduceCopier$MapOutputCopier.run(ReduceTask.java:1344)
+
+</pre><br></td>
+<td><a href="http://localhost:9100/taskstats.jsp?tipid=task_201305130129_0001_r_000001">18</a></td></tr>
+</tbody></table></center>
+
+<hr>
+<a href="http://localhost:9100/jobtracker.jsp">Go back to JobTracker</a><br>
+<hr>
+This is <a href="http://hadoop.apache.org/">Apache Hadoop</a> release 1.0.3
+
+
+</body></html>
