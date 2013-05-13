@@ -84,13 +84,16 @@ class Controller
         --create \
         --region "#{AWS_REGION}" \
         --name "#{emr_name}" \
-        --master-instance-type m1.large \
-        --slave-instance-type  c1.xlarge \
+        --master-instance-type m2.2xlarge \
+        --slave-instance-type  m2.2xlarge \
         --num-instances "#{num_instances}" \
         --jar "s3n:#{s3_jar_path}" \
         --args emr,"#{which_round}","#{which_source}" \
         --log-uri "s3n:#{s3_project_root}/logs" \
-        --visible-to-all-users
+        --visible-to-all-users \
+        --bootstrap-action s3://elasticmapreduce/bootstrap-actions/configure-daemons \
+        --arg --namenode-heap-size=25600 \
+        --arg --datanode-heap-size=25600
     SH
   end
 
